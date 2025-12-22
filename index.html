@@ -577,6 +577,13 @@ function computePrimaryAction(state){
       primaryButton.onclick = act.onClick;
     };
 
+    // Auto-refresh dashboard stats while open
+    setInterval(() => {
+      if (window.dashboardRender && window.MM_STATE) {
+        window.dashboardRender(window.MM_STATE);
+      }
+    }, 2000);
+
   </script>
 </body>
 </html>
