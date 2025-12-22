@@ -5,660 +5,234 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0b0b0c" />
-  <title>Market Mayhem Helper</title>
+  <title>Market Mayhem Dashboard</title>
+
   <style>
-:root{
-  --bg:#0b0b0c;
-  --panel:#111114;
-  --panel2:#0e0e10;
-  --border:#232323;
-  --border2:#2a2a2a;
-  --text:#f2f2f2;
-  --muted:rgba(242,242,242,.72);
-  --shadow:0 10px 30px rgba(0,0,0,.35);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-}
+    :root{
+      --bg:#0b0b0c;
+      --panel:#111114;
+      --panel2:#0e0e10;
+      --border:#232323;
+      --text:#f2f2f2;
+      --muted:rgba(242,242,242,.72);
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    }
+    body{ margin:0; background:var(--bg); color:var(--text); }
+    .wrap{ max-width:1100px; margin:0 auto; padding:18px; }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px 14px;
+      box-shadow:var(--shadow);
+    }
+    .title{ display:flex; flex-direction:column; gap:2px; }
+    .title h1{ margin:0; font-size:16px; letter-spacing:.2px; }
+    .title p{ margin:0; font-size:12px; color:var(--muted); }
 
-*{ box-sizing:border-box; }
-body{ margin:0; background:var(--bg); color:var(--text); }
+    .btnrow{ display:flex; gap:10px; }
+    .btn{
+      appearance:none; border:1px solid var(--border);
+      background:var(--panel);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .btn:hover{ filter:brightness(1.07); }
+    .btn.primary{
+      background:#1a1a1f;
+      border-color:#2a2a33;
+    }
 
-/* =========================
-   HEADER
-   ========================= */
-header{
-  padding:14px 16px;
-  border-bottom:1px solid #222;
-  display:flex;
-  gap:12px;
-  align-items:center;
-  justify-content:space-between;
-}
-header > div:first-child{ min-width:0; }
-header h1{ margin:0; font-size:16px; font-weight:800; letter-spacing:.3px; }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    .card{
+      border:1px solid var(--border);
+      background:var(--panel);
+      border-radius:14px;
+      padding:14px;
+      box-shadow:var(--shadow);
+    }
+    .card h2{ margin:0 0 8px 0; font-size:14px; }
+    .pillrow{ display:flex; flex-wrap:wrap; gap:10px; }
+    .pill{
+      border:1px solid var(--border);
+      background:var(--panel2);
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .bigAction{
+      display:flex; flex-direction:column; gap:10px;
+      border:1px dashed #2a2a2a;
+      background:rgba(255,255,255,.03);
+      border-radius:14px;
+      padding:14px;
+      margin-top:10px;
+    }
+    .bigAction .label{ font-size:12px; color:var(--muted); }
+    .bigAction .headline{ font-size:18px; font-weight:800; }
+    .bigAction .sub{ font-size:13px; color:var(--muted); line-height:1.35; }
 
-.pill{
-  font-size:12px;
-  opacity:.85;
-  padding:6px 10px;
-  border:1px solid var(--border2);
-  border-radius:999px;
-  white-space:nowrap;
-}
+    /* Panels (hidden for now) */
+    .panel{
+      position:fixed;
+      top:0; right:0;
+      width:min(520px, 92vw);
+      height:100vh;
+      background:var(--panel);
+      border-left:1px solid var(--border);
+      box-shadow: -20px 0 60px rgba(0,0,0,.5);
+      transform:translateX(110%);
+      transition:transform .18s ease;
+      z-index:50;
+      display:flex;
+      flex-direction:column;
+    }
+    .panel.open{ transform:translateX(0); }
+    .panelHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 12px;
+      border-bottom:1px solid var(--border);
+    }
+    .panelHeader strong{ font-size:13px; }
+    .panelBody{ padding:12px; overflow:auto; }
+    .ghost{ opacity:.85; }
 
-/* Header actions grid (supports either .row or .header-actions) */
-header .header-actions,
-header .row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  grid-template-areas:
-    "status status"
-    "save   reset";
-  gap:10px;
-  align-items:stretch;
-  justify-items:stretch;
-  width:min(560px, 100%);
-  max-width:none;
-}
-header .header-actions > *,
-header .row > *{ min-width:0; }
-
-#sessionStatus{
-  grid-area:status;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-#btnSave{ grid-area:save; }
-#btnReset{ grid-area:reset; }
-
-header button{
-  width:100%;
-  border-radius:16px;
-}
-
-@media (max-width:700px){
-  header{ align-items:flex-start; }
-  header .header-actions,
-  header .row{ width:min(420px, 100%); }
-}
-
-/* =========================
-   LAYOUT
-   ========================= */
-main{
-  padding:14px;
-  display:grid;
-  grid-template-columns:420px 1fr;
-  gap:14px;
-}
-@media (max-width:1000px){
-  main{ grid-template-columns:1fr; }
-}
-
-.rightCol{
-  display:grid;
-  gap:14px;
-}
-
-/* =========================
-   CARDS + TYPOGRAPHY
-   ========================= */
-.card{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:14px;
-  box-shadow:var(--shadow);
-}
-.card h2{ margin:0 0 8px; font-size:15px; font-weight:900; }
-.sub{ margin:0 0 10px; font-size:12px; color:var(--muted); line-height:1.35; }
-.muted{ color:var(--muted); }
-.mini{ font-size:11px; color:var(--muted); }
-.divider{ height:1px; background:#222; margin:12px 0; }
-
-/* =========================
-   FORMS + BUTTONS
-   ========================= */
-label{ display:block; margin-bottom:6px; font-size:12px; color:var(--muted); }
-
-input,select,button,textarea{
-  width:100%;
-  background:var(--panel2);
-  color:var(--text);
-  border:1px solid var(--border2);
-  border-radius:12px;
-  padding:10px;
-  outline:none;
-}
-input:focus,select:focus,textarea:focus{ border-color:#4a4a4a; }
-
-button{ cursor:pointer; font-weight:800; }
-button.primary{ background:#1e1e24; border-color:#3a3a3a; }
-button.danger{ background:#241214; border-color:#5a2a2e; }
-button:disabled{ opacity:.55; cursor:not-allowed; }
-
-/* Helpers */
-.row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-.row > *{ flex:1; min-width:140px; }
-
-.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-@media (max-width:600px){ .grid2{ grid-template-columns:1fr; } }
-
-/* =========================
-   LOG
-   ========================= */
-.log{
-  height:220px;
-  overflow:auto;
-  background:var(--panel2);
-  border:1px solid var(--border2);
-  border-radius:14px;
-  padding:10px;
-  font-size:12px;
-}
-.log .item{ padding:6px 2px; border-bottom:1px dashed #222; }
-.log .item:last-child{ border-bottom:none; }
-
-/* =========================
-   INDUSTRIES (Market Mover)
-   ========================= */
-.industry-list{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-@media (max-width:520px){ .industry-list{ grid-template-columns:1fr; } }
-
-.industry-box{
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:10px;
-  background:var(--panel2);
-}
-
-.industry-box .top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
-
-.industry-box .top > div:first-child{
-  flex:1 1 auto;
-  min-width:0;
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.industry-box .top input[type="checkbox"]{
-  width:auto;
-  transform:scale(1.15);
-  flex:0 0 auto;
-}
-
-.industry-box .top strong{
-  flex:1 1 auto;
-  min-width:0;
-  font-size:12px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-/* Dice dropdown text styling */
-#diceTotal{
-  font-size:16px;
-  font-weight:900;
-  letter-spacing:.3px;
-}
-
-/* indDir select: compact, emoji-centered, NO ARROW, clear state */
-.industry-box .top select.indDir{
-  width:52px;
-  flex:0 0 auto;
-  padding:0;                 /* no extra space needed since no caret */
-  height:40px;
-  border-radius:12px;
-
-  font-size:20px;
-  font-weight:900;
-  line-height:1;
-  text-align:center;
-  text-align-last:center;
-  cursor:pointer;
-
-  background:var(--panel2);
-  color:#e6e6e6;
-  border:1px solid var(--border2);
-
-  appearance:none;
-  -webkit-appearance:none;
-  -moz-appearance:none;
-
-  /* helps keep the emoji visually centered */
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-/* UP selected */
-.industry-box .top select.indDir:has(option[value="up"]:checked){
-  color:#9fe3b2;
-  border-color:rgba(159,227,178,.55);
-  background:
-    linear-gradient(180deg, rgba(159,227,178,.14), rgba(0,0,0,0)),
-    var(--panel2);
-}
-
-/* DOWN selected */
-.industry-box .top select.indDir:has(option[value="down"]:checked){
-  color:#ff9b9b;
-  border-color:rgba(255,155,155,.55);
-  background:
-    linear-gradient(180deg, rgba(255,155,155,.14), rgba(0,0,0,0)),
-    var(--panel2);
-}
-
-.industry-box .top select.indDir:focus{
-  border-color:#666;
-  box-shadow:0 0 0 2px rgba(255,255,255,.08);
-}
-
-.tag{
-  font-size:11px;
-  padding:4px 8px;
-  border:1px solid var(--border2);
-  border-radius:999px;
-  display:inline-block;
-  opacity:.9;
-  white-space:nowrap;
-  margin:4px 6px 0 0;
-}
-
-/* =========================
-   PIT BOARD
-   ========================= */
-.pitHead{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
-}
-
-.pitToggle{
-  display:none;
-  width:auto;
-  padding:10px 12px;
-  border-radius:10px;
-  white-space:nowrap;
-}
-
-#pitTableWrap{ display:block; }
-#pitTable{ width:100%; border-collapse:collapse; }
-#pitTable th,#pitTable td{
-  border-bottom:1px solid #222;
-  padding:10px 8px;
-  font-size:12px;
-  text-align:left;
-  vertical-align:top;
-}
-#pitTable th{
-  position:sticky;
-  top:0;
-  background:var(--panel);
-  z-index:2;
-  opacity:.9;
-  font-weight:900;
-}
-
-#pitCards{ display:none; }
-
-@media (max-width:700px){
-  .pitToggle{ display:inline-block; }
-  #pitTableWrap{ display:none; }
-  #pitBoardSection.expanded #pitCards{ display:grid; gap:10px; }
-}
-
-.pitCard{
-  background:var(--panel2);
-  border:1px solid var(--border2);
-  border-radius:12px;
-  padding:10px;
-  width:100%;
-}
-.pitRow1{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  gap:10px;
-}
-.pitLeft{ min-width:0; }
-.pitSymLine{ display:flex; gap:10px; align-items:baseline; min-width:0; }
-.pitSym{ font-weight:900; font-size:15px; letter-spacing:.4px; white-space:nowrap; }
-.pitName{
-  font-size:13px;
-  opacity:.9;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:55vw;
-}
-.pitCur{ font-weight:900; font-size:20px; white-space:nowrap; }
-
-.pitRow2{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
-.pitRow3{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  margin-top:8px;
-  font-size:12px;
-  color:var(--muted);
-}
-.pitRow3 div{
-  background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:10px;
-  padding:6px 8px;
-  min-width:0;
-}
-.pitRow3 b{ display:block; font-size:11px; opacity:.85; font-weight:700; }
-
-/* =========================
-   PLAYERS (desktop-only polish)
-   ========================= */
-@media (min-width:701px){
-  #playersArea .card > div:first-child > div:first-child{
-    max-width:420px;
-    flex:0 0 420px;
-    min-width:320px;
-  }
-  #playersArea .card > div:first-child > div:last-child{
-    flex:1 1 380px;
-    min-width:380px;
-  }
-
-  #playersArea .card > div:first-child > div:first-child > div:first-child{
-    font-size:18px;
-    font-weight:900;
-    letter-spacing:.3px;
-  }
-  #playersArea .card > div:first-child > div:first-child .mini.muted{
-    font-size:13px;
-    line-height:1.4;
-    white-space:normal;
-  }
-  #playersArea .card > div:first-child > div:first-child strong{
-    font-size:14px;
-    color:var(--text);
-  }
-}
-
-/* =========================
-   LEADERBOARD
-   ========================= */
-#leaderboard .tableWrap{
-  overflow:auto;
-  border:1px solid #222;
-  border-radius:14px;
-}
-
-#leaderboard table{
-  width:100%;
-  border-collapse:collapse;
-  table-layout:fixed;
-}
-
-#leaderboard th,
-#leaderboard td{
-  padding:12px 12px;
-  border-bottom:1px solid #222;
-  font-size:13px;
-  vertical-align:middle;
-  text-align:center;
-}
-
-#leaderboard th{
-  font-weight:900;
-  opacity:.95;
-}
-
-#leaderboard th:nth-child(1),
-#leaderboard td:nth-child(1){
-  width:90px;
-  font-size:18px;
-}
-
-#leaderboard th:nth-child(2),
-#leaderboard td:nth-child(2){
-  width:42%;
-  font-weight:900;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-#leaderboard th:nth-child(3),
-#leaderboard td:nth-child(3),
-#leaderboard th:nth-child(4),
-#leaderboard td:nth-child(4){
-  width:12%;
-}
-
-#leaderboard th:nth-child(5),
-#leaderboard td:nth-child(5){
-  width:22%;
-  font-weight:900;
-  white-space:nowrap;
-}
-
-@media (max-width:700px){
-  #leaderboard table{ min-width:560px; }
-  #leaderboard th, #leaderboard td{ padding:10px 10px; font-size:12px; }
-  #btnLeaderboardViewSummary,
-  #btnLeaderboardViewGames{ min-width:0; padding:10px 10px; }
-}
-
-#leaderboard thead th{ text-align:center !important; }
-#leaderboard td{ font-variant-numeric: tabular-nums; }
-
-/* =========================
-   PRINT (log export)
-   ========================= */
-@media print{
-  body{ background:#fff !important; color:#000 !important; }
-  header, main > section:not(.rightCol), .rightCol > section:not(:last-child){ display:none !important; }
-  .rightCol{ display:block !important; }
-  .card{ box-shadow:none !important; border:none !important; background:#fff !important; }
-  .log{ height:auto !important; overflow:visible !important; border:none !important; padding:0 !important; }
-  button{ display:none !important; }
-  .item{ border-bottom:1px solid #ddd !important; }
-  .mini{ color:#333 !important; }
-}
-</style>
+    @media (max-width: 900px){
+      .grid{ grid-template-columns:1fr; }
+    }
+  </style>
 </head>
 
 <body>
-  <header>
-    <div>
-      <h1>Market Mayhem: Exchange</h1>
-      <div class="mini muted">Physical board game + fast tracking (Pit Board + Player Assets)</div>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <h1>Market Mayhem Dashboard</h1>
+        <p class="ghost">Focused view. Everything else one tap away.</p>
+      </div>
+      <div class="btnrow">
+        <button class="btn" id="openPortfolio">Portfolio</button>
+        <button class="btn" id="openPit">Pit Board</button>
+        <button class="btn" id="openLog">Log</button>
+        <a class="btn primary" href="./classic.html" style="text-decoration:none; display:inline-flex; align-items:center;">
+          Open Classic
+        </a>
+      </div>
     </div>
-    <div class="row header-actions">
-      <div class="pill" id="sessionStatus">No session loaded</div>
-      <button class="primary" id="btnSave">Save</button>
-      <button class="danger" id="btnReset">Reset</button>
-    </div>
-  </header>
 
-  <main>
-    <!-- LEFT COLUMN -->
-    <section class="card" id="setupCard">
-      <h2>1) Session Setup</h2>
-      <div class="sub">Choose number of players (2–4), names, and starting cash. Then start session.</div>
+    <div class="grid">
+      <div class="card">
+        <h2>Primary Action</h2>
 
-      <div class="row">
-        <div>
-          <label>Number of players</label>
-          <select id="playerCount">
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4" selected>4</option>
-          </select>
+        <div class="pillrow" id="gameStatePills">
+          <div class="pill">Year: <span id="pillYear">—</span></div>
+          <div class="pill">Turn: <span id="pillTurn">—</span></div>
+          <div class="pill">Position: <span id="pillPos">—</span></div>
         </div>
-        <div>
-          <label>Starting cash per player</label>
-          <input id="startingCash" type="number" min="0" step="1000" value="50000" />
-        </div>
-      </div>
 
-      <div class="divider"></div>
-      <div id="playerInputs" class="grid2"></div>
-      <div class="divider"></div>
-
-      <button class="primary" id="btnStart">Start / Rebuild Session</button>
-
-      <div class="divider"></div>
-
-      <h2>2) Market Mover</h2>
-      <div class="sub">
-        Select industries, choose up/down, then enter the 2d6 total. The app updates all affected prices.
-      </div>
-
-      <div class="row">
-        <div>
-          <label>Dice total (2–12)</label>
-          <select id="diceTotal">
-            <option value="">🎲 Dice Total</option>
-            <option value="2">⚀⚀ (2)</option>
-            <option value="3">⚀⚁ (3)</option>
-            <option value="4">⚀⚂ (4)</option>
-            <option value="5">⚀⚃ (5)</option>
-            <option value="6">⚀⚄ (6)</option>
-            <option value="7">⚁⚄ (7)</option>
-            <option value="8">⚂⚄ (8)</option>
-            <option value="9">⚃⚄ (9)</option>
-            <option value="10">⚄⚄ (10)</option>
-            <option value="11">⚄⚅ (11)</option>
-            <option value="12">⚅⚅ (12)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-      <div class="industry-list" id="industryList"></div>
-
-      <div class="divider"></div>
-      <button class="primary" id="btnApplyMarketMover" disabled>Apply Market Mover</button>
-      <div class="mini muted" id="marketMoverHint">Start a session first.</div>
-
-      <div class="divider"></div>
-
-      <h2>3) Quick Tools</h2>
-      <div class="row">
-        <button id="btnPayDividends" disabled>Pay Dividends (Opening Bell)</button>
-        <button id="btnShortMove" disabled>Short Sell / Short Squeeze (+/- 8)</button>
-      </div>
-
-      <div class="row">
-        <div>
-          <label>Short Move Stock</label>
-          <select id="shortMoveSymbol"></select>
-        </div>
-        <div>
-          <label>Direction</label>
-          <select id="shortMoveDir">
-            <option value="up">Up (+8)</option>
-            <option value="down">Down (-8)</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <!-- RIGHT COLUMN -->
-    <section class="rightCol">
-
-      <section class="card">
-        <div class="row" style="align-items:flex-start;">
-          <div style="flex:1; min-width:220px;">
-            <h2>Players (Cash + Holdings + Total Assets)</h2>
-            <div class="sub">Buy/Sell in 100-share increments</div>
-          </div>
-          <div style="flex:0; min-width:180px;">
-            <button class="danger" id="btnEndSession" type="button" disabled>End Session</button>
-          </div>
-        </div>
-      
-        <div id="playersArea"></div>
-      </section>
-
-      <section class="card" id="pitBoardSection">
-        <div class="pitHead">
+        <div class="bigAction" id="primaryActionCard">
+          <div class="label" id="primaryLabel">Next step</div>
+          <div class="headline" id="primaryHeadline">Load game state</div>
+          <div class="sub" id="primarySub">Once we wire your existing app.js state into this view, this card will tell you what to do next.</div>
           <div>
-            <h2>Pit Board (Prices + Industries)</h2>
-            <div class="sub">Desktop shows the table. Mobile uses an expandable card view.</div>
-          </div>
-          <button id="btnPitToggle" class="pitToggle" type="button">Show Pit Board</button>
-        </div>
-
-        <!-- Desktop Table -->
-        <div id="pitTableWrap">
-          <table id="pitTable">
-            <thead>
-              <tr>
-                <th>Symbol</th>
-                <th>Company</th>
-                <th>Industries</th>
-                <th>Dividend</th>
-                <th>Start</th>
-                <th>Current</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <!-- Mobile Cards -->
-        <div id="pitCards"></div>
-      </section>
-
-      <section class="card">
-        <div class="row" style="align-items:flex-start;">
-          <div style="flex:1; min-width:200px;">
-            <h2>Game Log</h2>
-            <div class="sub">Every market move + trade is recorded here.</div>
-          </div>
-          <div style="flex:0; min-width:180px;">
-            <button class="primary" id="btnPrintLog" type="button">Print / Export Log</button>
+            <button class="btn primary" id="primaryButton">Start</button>
           </div>
         </div>
-      
-        <div class="log" id="log"></div>
-      </section>
+      </div>
 
-      <section class="card">
-        <div class="row" style="align-items:flex-start;">
-          <div style="flex:1; min-width:220px;">
-            <h2>Leaderboard</h2>
-            <div class="sub">All completed sessions recorded on this device.</div>
-          </div>
-          <div style="flex:0; min-width:180px;">
-            <button id="btnClearLeaderboard" type="button">Clear Leaderboard</button>
-          </div>
+      <div class="card">
+        <h2>Quick Stats</h2>
+        <div class="pillrow">
+          <div class="pill">Cash: <span id="statCash">—</span></div>
+          <div class="pill">Stock Value: <span id="statStock">—</span></div>
+          <div class="pill">Dividends: <span id="statDiv">—</span></div>
+          <div class="pill">Net Worth: <span id="statNet">—</span></div>
         </div>
-      
-        <div class="row" style="align-items:flex-start; margin-bottom:10px;">
-          <button class="primary" id="btnLeaderboardViewSummary" type="button">All-Time Rankings</button>
-          <button id="btnLeaderboardViewGames" type="button">Recent Games</button>
-        </div>
-        
-        <div id="leaderboard"></div>
-      </section>
-    </section>
-  </main>
 
+        <div style="height:10px"></div>
+
+        <div class="ghost" style="font-size:12px; line-height:1.4;">
+          Goal: keep this screen calm. The heavy tables live inside the panels.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panels -->
+  <aside class="panel" id="panelPortfolio" aria-hidden="true">
+    <div class="panelHeader">
+      <strong>Portfolio</strong>
+      <button class="btn" data-close>Close</button>
+    </div>
+    <div class="panelBody" id="panelPortfolioBody">
+      <div class="ghost">Next step: we’ll move your existing portfolio UI into here.</div>
+    </div>
+  </aside>
+
+  <aside class="panel" id="panelPit" aria-hidden="true">
+    <div class="panelHeader">
+      <strong>Pit Board</strong>
+      <button class="btn" data-close>Close</button>
+    </div>
+    <div class="panelBody" id="panelPitBody">
+      <div class="ghost">Next step: we’ll move your existing pit board UI into here.</div>
+    </div>
+  </aside>
+
+  <aside class="panel" id="panelLog" aria-hidden="true">
+    <div class="panelHeader">
+      <strong>Log</strong>
+      <button class="btn" data-close>Close</button>
+    </div>
+    <div class="panelBody" id="panelLogBody">
+      <div class="ghost">Next step: we’ll feed your existing event log into here.</div>
+    </div>
+  </aside>
+
+  <script src="./app.js"></script>
   <script>
-    console.log("HTML reached script area ✅");
-  </script>
-  <script src="app.js"></script>
-  <script>
-    console.log("app.js finished loading ✅");
+    // Basic panel toggles (dashboard-only)
+    const panels = {
+      portfolio: document.getElementById('panelPortfolio'),
+      pit: document.getElementById('panelPit'),
+      log: document.getElementById('panelLog'),
+    };
+
+    function openPanel(key){
+      panels[key].classList.add('open');
+      panels[key].setAttribute('aria-hidden', 'false');
+    }
+    function closeAllPanels(){
+      Object.values(panels).forEach(p => {
+        p.classList.remove('open');
+        p.setAttribute('aria-hidden','true');
+      });
+    }
+
+    document.getElementById('openPortfolio').addEventListener('click', () => openPanel('portfolio'));
+    document.getElementById('openPit').addEventListener('click', () => openPanel('pit'));
+    document.getElementById('openLog').addEventListener('click', () => openPanel('log'));
+    document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', closeAllPanels));
+    window.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAllPanels(); });
+
+    // Temporary: dashboard placeholder (we wire real state next)
+    document.getElementById('primaryButton').addEventListener('click', () => {
+      document.getElementById('primaryHeadline').textContent = 'Dashboard shell is live';
+      document.getElementById('primarySub').textContent = 'Next: connect this to your existing state in app.js.';
+    });
   </script>
 </body>
 </html>
