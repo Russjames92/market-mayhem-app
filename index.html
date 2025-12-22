@@ -394,11 +394,102 @@
     document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', closeAllPanels));
     window.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAllPanels(); });
 
-    // Temporary: dashboard placeholder (we wire real state next)
-    document.getElementById('primaryButton').addEventListener('click', () => {
-      document.getElementById('primaryHeadline').textContent = 'Dashboard shell is live';
-      document.getElementById('primarySub').textContent = 'Next: connect this to your existing state in app.js.';
-    });
+    // ---- Dashboard UI wiring ----
+    const pillYear = document.getElementById("pillYear");
+    const pillTurn = document.getElementById("pillTurn");
+    const pillPos  = document.getElementById("pillPos");
+    
+    const statCash  = document.getElementById("statCash");
+    const statStock = document.getElementById("statStock");
+    const statDiv   = document.getElementById("statDiv");
+    const statNet   = document.getElementById("statNet");
+    
+    const primaryLabel = document.getElementById("primaryLabel");
+    const primaryHeadline = document.getElementById("primaryHeadline");
+    const primarySub = document.getElementById("primarySub");
+    const primaryButton = document.getElementById("primaryButton");
+    
+    function money(n){
+      const v = Number(n || 0);
+      return v.toLocaleString("en-US");
+    }
+    
+    function openControls(){
+      openPanel("controls");
+    }
+    
+    // Decide the next action based on current state
+    function computePrimaryAction(state){
+      if (!state || !state.started){
+        return {
+          label: "Next step",
+          headline: "Start a session",
+          sub: "Set player count + starting cash, then start/rebuild the session.",
+          button: "Open Controls",
+          onClick: () => openControls()
+        };
+      }
+    
+      // Session started:
+      // Simple useful default: pit board + portfolio are the two most common views
+      return {
+        label: "Next step",
+        headline: "Trade or move the market",
+        sub: "Open your portfolio to buy/sell, or open the pit board to update prices.",
+        button: "Open Portfolio",
+        onClick: () => openPanel("portfolio")
+      };
+    }
+    
+    // Optional: quick stats (basic, safe estimates)
+    function computeTotals(state){
+      if (!state || !state.started) return { cash:0, stock:0, div:0, net:0 };
+    
+      const bySymbol = Object.fromEntries((state.stocks || []).map(s => [s.symbol, s]));
+      let cash = 0;
+      let stock = 0;
+      let div = 0;
+    
+      for (const p of (state.players || [])){
+        cash += Number(p.cash || 0);
+    
+        const holdings = p.holdings || {};
+        for (const [sym, shares] of Object.entries(holdings)){
+          const s = bySymbol[sym];
+          if (!s) continue;
+          const sh = Number(shares || 0);
+          stock += sh * Number(s.price || 0);
+          div += sh * Number(s.dividend || 0);
+        }
+      }
+    
+      const net = cash + stock;
+      return { cash, stock, div, net };
+    }
+    
+    // This is called by app.js every render
+    window.dashboardRender = function(state){
+      // Pills (if you don’t track these yet, leave as —)
+      pillYear.textContent = state?.year ?? "—";
+      pillTurn.textContent = state?.turn ?? "—";
+      pillPos.textContent  = state?.position ?? "—";
+    
+      const t = computeTotals(state);
+      statCash.textContent  = "$" + money(t.cash);
+      statStock.textContent = "$" + money(t.stock);
+      statDiv.textContent   = "$" + money(t.div);
+      statNet.textContent   = "$" + money(t.net);
+    
+      const act = computePrimaryAction(state);
+      primaryLabel.textContent = act.label;
+      primaryHeadline.textContent = act.headline;
+      primarySub.textContent = act.sub;
+      primaryButton.textContent = act.button;
+    
+      // Replace the click handler cleanly each render
+      primaryButton.onclick = act.onClick;
+    };
+
   </script>
 </body>
 </html>
