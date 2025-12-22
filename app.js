@@ -699,6 +699,7 @@ function renderAll() {
 
   if (elMarketMoverHint || elBtnApplyMarketMover) updateMarketMoverButton();
    // Dashboard hook (if present)
+   window.MM_STATE = state;
    if (window.dashboardRender) window.dashboardRender(state);
 }
 
