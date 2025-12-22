@@ -202,6 +202,10 @@
 
       <div class="card">
         <h2>Quick Stats</h2>
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+          <div class="mini muted" style="min-width:90px;">Show:</div>
+          <select id="statPlayer" style="max-width:260px;"></select>
+        </div>
         <div class="pillrow">
           <div class="pill">Cash: <span id="statCash">—</span></div>
           <div class="pill">Stock Value: <span id="statStock">—</span></div>
@@ -409,6 +413,13 @@
     const primarySub = document.getElementById("primarySub");
     const primaryButton = document.getElementById("primaryButton");
     
+    const statPlayer = document.getElementById("statPlayer");
+      let statPlayerId = null;
+      
+      statPlayer?.addEventListener("change", () => {
+        statPlayerId = statPlayer.value || null;
+      });
+
     function money(n){
       const v = Number(n || 0);
       return v.toLocaleString("en-US");
@@ -419,61 +430,133 @@
     }
     
     // Decide the next action based on current state
-    function computePrimaryAction(state){
-      if (!state || !state.started){
-        return {
-          label: "Next step",
-          headline: "Start a session",
-          sub: "Set player count + starting cash, then start/rebuild the session.",
-          button: "Open Controls",
-          onClick: () => openControls()
-        };
-      }
-    
-      // Session started:
-      // Simple useful default: pit board + portfolio are the two most common views
-      return {
-        label: "Next step",
-        headline: "Trade or move the market",
-        sub: "Open your portfolio to buy/sell, or open the pit board to update prices.",
-        button: "Open Portfolio",
-        onClick: () => openPanel("portfolio")
-      };
-    }
+    function marketMoverReady(state){
+  // if button is enabled, it's ready
+  const btn = document.getElementById("btnApplyMarketMover");
+  return !!state?.started && btn && !btn.disabled;
+}
+
+function anyDividendsDue(state){
+  if (!state?.started) return false;
+  const stocks = window.STOCKS || [];
+  return (state.players || []).some(p => {
+    const h = p.holdings || {};
+    return stocks.some(s => (Number(h[s.symbol] || 0) > 0) && Number(s.dividend || 0) > 0);
+  });
+}
+
+function computePrimaryAction(state){
+  if (!state?.started){
+    return {
+      label: "Next step",
+      headline: "Start a session",
+      sub: "Set player count + starting cash, then start/rebuild the session.",
+      button: "Open Controls",
+      onClick: () => openPanel("controls")
+    };
+  }
+
+  if (marketMoverReady(state)){
+    return {
+      label: "Next step",
+      headline: "Apply Market Mover",
+      sub: "You’ve selected industries + dice. Apply the move to update prices.",
+      button: "Apply Market Mover",
+      onClick: () => document.getElementById("btnApplyMarketMover")?.click()
+    };
+  }
+
+  if (anyDividendsDue(state)){
+    return {
+      label: "Next step",
+      headline: "Pay Opening Bell dividends",
+      sub: "At least one player holds dividend-paying stock. Pay dividends to all players.",
+      button: "Pay Dividends",
+      onClick: () => document.getElementById("btnPayDividends")?.click()
+    };
+  }
+
+  return {
+    label: "Next step",
+    headline: "Trade",
+    sub: "Buy/sell stock in the Portfolio panel.",
+    button: "Open Portfolio",
+    onClick: () => openPanel("portfolio")
+  };
+}
     
     // Optional: quick stats (basic, safe estimates)
-    function computeTotals(state){
-      if (!state || !state.started) return { cash:0, stock:0, div:0, net:0 };
+    function computePlayerTotals(state, playerId){
+      if (!state?.started) return { cash:0, stock:0, div:0, net:0 };
     
-      // STOCKS is global because app.js defines it at top-level
+      const p = (state.players || []).find(x => x.id === playerId) || state.players?.[0];
+      if (!p) return { cash:0, stock:0, div:0, net:0 };
+    
       const bySymbol = Object.fromEntries((window.STOCKS || []).map(s => [s.symbol, s]));
     
-      let cash = 0;
+      let cash = Number(p.cash || 0);
       let stock = 0;
       let div = 0;
+    
+      for (const [sym, shares] of Object.entries(p.holdings || {})){
+        const def = bySymbol[sym];
+        if (!def) continue;
+    
+        const sh = Number(shares || 0);
+        const price = Number((state.prices && state.prices[sym]) ?? def.start ?? 0);
+    
+        stock += sh * price;
+        div   += sh * Number(def.dividend || 0);
+      }
+    
+      return { cash, stock, div, net: cash + stock };
+    }
+    
+    function computeTableTotals(state){
+      if (!state?.started) return { cash:0, stock:0, div:0, net:0 };
+    
+      const bySymbol = Object.fromEntries((window.STOCKS || []).map(s => [s.symbol, s]));
+      let cash = 0, stock = 0, div = 0;
     
       for (const p of (state.players || [])){
         cash += Number(p.cash || 0);
     
-        const holdings = p.holdings || {};
-        for (const [sym, shares] of Object.entries(holdings)){
-          const stockDef = bySymbol[sym];
-          if (!stockDef) continue;
+        for (const [sym, shares] of Object.entries(p.holdings || {})){
+          const def = bySymbol[sym];
+          if (!def) continue;
     
           const sh = Number(shares || 0);
-          const price = Number((state.prices && state.prices[sym]) ?? stockDef.start ?? 0);
+          const price = Number((state.prices && state.prices[sym]) ?? def.start ?? 0);
     
           stock += sh * price;
-          div   += sh * Number(stockDef.dividend || 0);
+          div   += sh * Number(def.dividend || 0);
         }
       }
     
-      const net = cash + stock;
-      return { cash, stock, div, net };
+      return { cash, stock, div, net: cash + stock };
     }
     
     // This is called by app.js every render
     window.dashboardRender = function(state){
+      // Build stat player dropdown
+      if (statPlayer){
+        if (!state?.started || !(state.players || []).length){
+          statPlayer.innerHTML = `<option value="">—</option>`;
+          statPlayerId = null;
+        } else {
+          const opts = state.players.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+          statPlayer.innerHTML = opts;
+      
+          if (!statPlayerId) statPlayerId = state.players[0].id;
+          statPlayer.value = statPlayerId;
+        }
+      }
+      
+      // Choose which stats to show
+      const totals = statPlayerId
+        ? computePlayerTotals(state, statPlayerId)
+        : computeTableTotals(state);
+
       // Pills (if you don’t track these yet, leave as —)
       pillYear.textContent = state?.year ?? "—";
       pillTurn.textContent = state?.turn ?? "—";
