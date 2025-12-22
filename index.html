@@ -562,11 +562,10 @@ function computePrimaryAction(state){
       pillTurn.textContent = state?.turn ?? "—";
       pillPos.textContent  = state?.position ?? "—";
     
-      const t = computeTotals(state);
-      statCash.textContent  = "$" + money(t.cash);
-      statStock.textContent = "$" + money(t.stock);
-      statDiv.textContent   = "$" + money(t.div);
-      statNet.textContent   = "$" + money(t.net);
+      statCash.textContent  = "$" + money(totals.cash);
+      statStock.textContent = "$" + money(totals.stock);
+      statDiv.textContent   = "$" + money(totals.div);
+      statNet.textContent   = "$" + money(totals.net);
     
       const act = computePrimaryAction(state);
       primaryLabel.textContent = act.label;
