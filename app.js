@@ -86,10 +86,6 @@ const elBtnLeaderboardViewGames = $("btnLeaderboardViewGames");
 const pitBoardSection = $("pitBoardSection");
 const pitToggleBtn = $("btnPitToggle");
 
-// Pit toggle (mobile only)
-const pitBoardSection = document.getElementById("pitBoardSection");
-const pitToggleBtn = document.getElementById("btnPitToggle");
-
 // ---------- Helpers ----------
 function nowTs() {
   return new Date().toLocaleString();
