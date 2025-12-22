@@ -232,7 +232,11 @@
         <h2 style="margin:0 0 10px 0;">Session Setup</h2>
   
         <label class="mini">Number of players</label>
-        <select id="playerCount"></select>
+        <select id="playerCount">
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4" selected>4</option>
+        </select>
   
         <div style="height:10px"></div>
   
@@ -252,12 +256,25 @@
       <section class="card" style="box-shadow:none;">
         <h2 style="margin:0 0 10px 0;">Market Mover</h2>
   
-        <div id="industryList"></div>
+        <div class="industry-list" id="industryList"></div>
   
         <div style="height:10px"></div>
   
         <label class="mini">Dice total (2–12)</label>
-        <select id="diceTotal"></select>
+        <select id="diceTotal">
+          <option value="">🎲 Dice Total</option>
+          <option value="2">⚀⚀ (2)</option>
+          <option value="3">⚀⚁ (3)</option>
+          <option value="4">⚀⚂ (4)</option>
+          <option value="5">⚀⚃ (5)</option>
+          <option value="6">⚀⚄ (6)</option>
+          <option value="7">⚁⚄ (7)</option>
+          <option value="8">⚂⚄ (8)</option>
+          <option value="9">⚃⚄ (9)</option>
+          <option value="10">⚄⚄ (10)</option>
+          <option value="11">⚄⚅ (11)</option>
+          <option value="12">⚅⚅ (12)</option>
+        </select>
   
         <div style="height:10px"></div>
         <button id="btnApplyMarketMover">Apply Market Mover</button>
