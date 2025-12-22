@@ -445,7 +445,9 @@
     function computeTotals(state){
       if (!state || !state.started) return { cash:0, stock:0, div:0, net:0 };
     
-      const bySymbol = Object.fromEntries((state.stocks || []).map(s => [s.symbol, s]));
+      // STOCKS is global because app.js defines it at top-level
+      const bySymbol = Object.fromEntries((window.STOCKS || []).map(s => [s.symbol, s]));
+    
       let cash = 0;
       let stock = 0;
       let div = 0;
@@ -455,11 +457,14 @@
     
         const holdings = p.holdings || {};
         for (const [sym, shares] of Object.entries(holdings)){
-          const s = bySymbol[sym];
-          if (!s) continue;
+          const stockDef = bySymbol[sym];
+          if (!stockDef) continue;
+    
           const sh = Number(shares || 0);
-          stock += sh * Number(s.price || 0);
-          div += sh * Number(s.dividend || 0);
+          const price = Number((state.prices && state.prices[sym]) ?? stockDef.start ?? 0);
+    
+          stock += sh * price;
+          div   += sh * Number(stockDef.dividend || 0);
         }
       }
     
