@@ -36,6 +36,9 @@ const STOCKS = [
   { symbol:"LB",   name:"Liberty Logistix",    industries:["Transportation"], start:90, dividend:5, moves:{low:12, mid:10, high:8} },
 ];
 
+function $(id){ return document.getElementById(id); }
+function on(el, evt, fn){ if (el) el.addEventListener(evt, fn); }
+
 // ---------- State ----------
 let state = {
   started: false,
@@ -46,39 +49,42 @@ let state = {
 };
 
 // ---------- DOM ----------
-const elSessionStatus = document.getElementById("sessionStatus");
-const elBtnSave = document.getElementById("btnSave");
-const elBtnReset = document.getElementById("btnReset");
+const elSessionStatus = $("sessionStatus");
+const elBtnSave = $("btnSave");
+const elBtnReset = $("btnReset");
 
-const elPlayerCount = document.getElementById("playerCount");
-const elStartingCash = document.getElementById("startingCash");
-const elPlayerInputs = document.getElementById("playerInputs");
-const elBtnStart = document.getElementById("btnStart");
+const elPlayerCount = $("playerCount");
+const elStartingCash = $("startingCash");
+const elPlayerInputs = $("playerInputs");
+const elBtnStart = $("btnStart");
 
-const elIndustryList = document.getElementById("industryList");
-const elDiceTotal = document.getElementById("diceTotal");
-const elBtnApplyMarketMover = document.getElementById("btnApplyMarketMover");
-const elMarketMoverHint = document.getElementById("marketMoverHint");
+const elIndustryList = $("industryList");
+const elDiceTotal = $("diceTotal");
+const elBtnApplyMarketMover = $("btnApplyMarketMover");
+const elMarketMoverHint = $("marketMoverHint");
 
 const elPitTableBody = document.querySelector("#pitTable tbody");
-const elPitCards = document.getElementById("pitCards");
+const elPitCards = $("pitCards");
 
-const elPlayersArea = document.getElementById("playersArea");
-const elLog = document.getElementById("log");
+const elPlayersArea = $("playersArea");
+const elLog = $("log");
 
-const elBtnPayDividends = document.getElementById("btnPayDividends");
-const elBtnShortMove = document.getElementById("btnShortMove");
-const elShortMoveSymbol = document.getElementById("shortMoveSymbol");
-const elShortMoveDir = document.getElementById("shortMoveDir");
+const elBtnPayDividends = $("btnPayDividends");
+const elBtnShortMove = $("btnShortMove");
+const elShortMoveSymbol = $("shortMoveSymbol");
+const elShortMoveDir = $("shortMoveDir");
 
-const elBtnPrintLog = document.getElementById("btnPrintLog");
+const elBtnPrintLog = $("btnPrintLog");
 
-const elBtnEndSession = document.getElementById("btnEndSession");
-const elLeaderboard = document.getElementById("leaderboard");
-const elBtnClearLeaderboard = document.getElementById("btnClearLeaderboard");
+const elBtnEndSession = $("btnEndSession");
+const elLeaderboard = $("leaderboard");
+const elBtnClearLeaderboard = $("btnClearLeaderboard");
 
-const elBtnLeaderboardViewSummary = document.getElementById("btnLeaderboardViewSummary");
-const elBtnLeaderboardViewGames = document.getElementById("btnLeaderboardViewGames");
+const elBtnLeaderboardViewSummary = $("btnLeaderboardViewSummary");
+const elBtnLeaderboardViewGames = $("btnLeaderboardViewGames");
+
+const pitBoardSection = $("pitBoardSection");
+const pitToggleBtn = $("btnPitToggle");
 
 // Pit toggle (mobile only)
 const pitBoardSection = document.getElementById("pitBoardSection");
@@ -1022,44 +1028,47 @@ function setupPitToggle() {
 }
 
 // ---------- Events ----------
-elPlayerCount.addEventListener("change", buildSetupInputs);
-elBtnStart.addEventListener("click", startSession);
+on(elPlayerCount, "change", buildSetupInputs);
+on(elBtnStart, "click", startSession);
+on(elBtnApplyMarketMover, "click", applyMarketMover);
+on(elBtnPayDividends, "click", payDividendsConfirmed);
+on(elBtnShortMove, "click", shortMove);
+on(elBtnSave, "click", saveState);
+on(elBtnReset, "click", resetState);
+on(elBtnPrintLog, "click", printGameLog);
+on(elBtnEndSession, "click", endSession);
+on(elBtnClearLeaderboard, "click", clearLeaderboard);
 
-elBtnApplyMarketMover.addEventListener("click", applyMarketMover);
-elBtnPayDividends.addEventListener("click", payDividendsConfirmed);
-elBtnShortMove.addEventListener("click", shortMove);
-
-elBtnSave.addEventListener("click", saveState);
-elBtnReset.addEventListener("click", resetState);
-
-elBtnPrintLog.addEventListener("click", printGameLog);
-
-elBtnEndSession.addEventListener("click", endSession);
-elBtnClearLeaderboard.addEventListener("click", clearLeaderboard);
-
-if (elBtnLeaderboardViewSummary) {
-  elBtnLeaderboardViewSummary.addEventListener("click", () => {
-    leaderboardView = "summary";
-    renderLeaderboard();
-  });
-}
-if (elBtnLeaderboardViewGames) {
-  elBtnLeaderboardViewGames.addEventListener("click", () => {
-    leaderboardView = "games";
-    renderLeaderboard();
-  });
-}
-
+on(
+   if (elBtnLeaderboardViewSummary) {
+     elBtnLeaderboardViewSummary.addEventListener("click", () => {
+       leaderboardView = "summary";
+       renderLeaderboard();
+     });
+   }
+   if (elBtnLeaderboardViewGames) {
+     elBtnLeaderboardViewGames.addEventListener("click", () => {
+       leaderboardView = "games";
+       renderLeaderboard();
+     });
+   }
+);
 // ---------- Init ----------
 function init() {
   loadState();
-   
-   loadLeaderboard();
-   renderLeaderboard();
+  loadLeaderboard();
+  renderLeaderboard();
 
-  buildSetupInputs();
-  buildIndustryUI();
-  buildShortMoveUI();
+  // Only build classic setup tools if they exist on the page
+  if (elPlayerInputs && elPlayerCount && elStartingCash && elBtnStart) {
+    buildSetupInputs();
+  }
+  if (elIndustryList && elDiceTotal && elBtnApplyMarketMover) {
+    buildIndustryUI();
+  }
+  if (elShortMoveSymbol && elShortMoveDir) {
+    buildShortMoveUI();
+  }
 
   if (state.started) {
     for (const p of state.players) ensureHoldings(p);
@@ -1068,4 +1077,5 @@ function init() {
   setupPitToggle();
   renderAll();
 }
+
 init();
