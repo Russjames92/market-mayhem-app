@@ -170,6 +170,7 @@
         <p class="ghost">Focused view. Everything else one tap away.</p>
       </div>
       <div class="btnrow">
+        <button class="btn" id="openControls">Controls</button>
         <button class="btn" id="openPortfolio">Portfolio</button>
         <button class="btn" id="openPit">Pit Board</button>
         <button class="btn" id="openLog">Log</button>
@@ -218,6 +219,89 @@
   </div>
 
   <!-- Panels -->
+  <aside class="panel" id="panelControls" aria-hidden="true">
+    <div class="panelHeader">
+      <strong>Controls</strong>
+      <button class="btn" data-close>Close</button>
+    </div>
+    <div class="panelBody" id="panelControlsBody">
+  
+      <div class="divider"></div>
+  
+      <section class="card" style="box-shadow:none;">
+        <h2 style="margin:0 0 10px 0;">Session Setup</h2>
+  
+        <label class="mini">Number of players</label>
+        <select id="playerCount"></select>
+  
+        <div style="height:10px"></div>
+  
+        <label class="mini">Starting cash per player</label>
+        <input id="startingCash" type="number" value="50000"/>
+  
+        <div style="height:10px"></div>
+  
+        <div id="playerInputs"></div>
+  
+        <div style="height:10px"></div>
+        <button class="primary" id="btnStart">Start / Rebuild Session</button>
+      </section>
+  
+      <div class="divider"></div>
+  
+      <section class="card" style="box-shadow:none;">
+        <h2 style="margin:0 0 10px 0;">Market Mover</h2>
+  
+        <div id="industryList"></div>
+  
+        <div style="height:10px"></div>
+  
+        <label class="mini">Dice total (2–12)</label>
+        <select id="diceTotal"></select>
+  
+        <div style="height:10px"></div>
+        <button id="btnApplyMarketMover">Apply Market Mover</button>
+        <div class="mini" id="marketMoverHint"></div>
+      </section>
+  
+      <div class="divider"></div>
+  
+      <section class="card" style="box-shadow:none;">
+        <h2 style="margin:0 0 10px 0;">Quick Tools</h2>
+  
+        <button class="primary" id="btnPayDividends">Pay Dividends (Opening Bell)</button>
+  
+        <div style="height:10px"></div>
+  
+        <label class="mini">Short Move Stock</label>
+        <select id="shortMoveSymbol"></select>
+  
+        <div style="height:10px"></div>
+  
+        <label class="mini">Direction</label>
+        <select id="shortMoveDir">
+          <option value="up">Up (+8)</option>
+          <option value="down">Down (-8)</option>
+        </select>
+  
+        <div style="height:10px"></div>
+        <button id="btnShortMove">Short Sell / Short Squeeze</button>
+      </section>
+  
+      <div class="divider"></div>
+  
+      <section class="card" style="box-shadow:none;">
+        <h2 style="margin:0 0 10px 0;">Session</h2>
+        <button id="btnSave">Save</button>
+        <div style="height:10px"></div>
+        <button class="danger" id="btnReset">Reset</button>
+        <div style="height:10px"></div>
+        <button class="danger" id="btnEndSession">End Session</button>
+      </section>
+  
+    </div>
+  </aside>
+
   <aside class="panel" id="panelPortfolio" aria-hidden="true">
     <div class="panelHeader">
       <strong>Portfolio</strong>
