@@ -1074,4 +1074,4 @@ function init() {
   renderAll();
 }
 
-init();
+window.addEventListener("DOMContentLoaded", init);
