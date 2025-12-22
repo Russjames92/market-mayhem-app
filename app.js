@@ -36,9 +36,6 @@ const STOCKS = [
   { symbol:"LB",   name:"Liberty Logistix",    industries:["Transportation"], start:90, dividend:5, moves:{low:12, mid:10, high:8} },
 ];
 
-function $(id){ return document.getElementById(id); }
-function on(el, evt, fn){ if (el) el.addEventListener(evt, fn); }
-
 // ---------- State ----------
 let state = {
   started: false,
@@ -47,6 +44,9 @@ let state = {
   prices: {},      // { SYM: currentPrice }
   log: [],         // { ts, text }
 };
+
+function $(id){ return document.getElementById(id); }
+function on(el, evt, fn){ if (el) el.addEventListener(evt, fn); }
 
 // ---------- DOM ----------
 const elSessionStatus = $("sessionStatus");
@@ -689,18 +689,19 @@ function updateMarketMoverButton() {
 }
 
 function renderAll() {
-  renderStatus();
-  renderPitBoard();
-  renderPlayers();
-  renderLog();
+  // only render into sections that exist on the current page
+  if (elSessionStatus) renderStatus();
+  if (elPitTableBody || elPitCards) renderPitBoard();
+  if (elPlayersArea) renderPlayers();
+  if (elLog) renderLog();
 
   const started = !!state.started;
-  elBtnPayDividends.disabled = !started;
-  elBtnShortMove.disabled = !started;
-   
-   elBtnEndSession.disabled = !started;
 
-  updateMarketMoverButton();
+  if (elBtnPayDividends) elBtnPayDividends.disabled = !started;
+  if (elBtnShortMove) elBtnShortMove.disabled = !started;
+  if (elBtnEndSession) elBtnEndSession.disabled = !started;
+
+  if (elMarketMoverHint || elBtnApplyMarketMover) updateMarketMoverButton();
 }
 
 function clearLeaderboard() {
@@ -1030,29 +1031,28 @@ function setupPitToggle() {
 // ---------- Events ----------
 on(elPlayerCount, "change", buildSetupInputs);
 on(elBtnStart, "click", startSession);
+
 on(elBtnApplyMarketMover, "click", applyMarketMover);
 on(elBtnPayDividends, "click", payDividendsConfirmed);
 on(elBtnShortMove, "click", shortMove);
+
 on(elBtnSave, "click", saveState);
 on(elBtnReset, "click", resetState);
+
 on(elBtnPrintLog, "click", printGameLog);
+
 on(elBtnEndSession, "click", endSession);
 on(elBtnClearLeaderboard, "click", clearLeaderboard);
 
-on(
-   if (elBtnLeaderboardViewSummary) {
-     elBtnLeaderboardViewSummary.addEventListener("click", () => {
-       leaderboardView = "summary";
-       renderLeaderboard();
-     });
-   }
-   if (elBtnLeaderboardViewGames) {
-     elBtnLeaderboardViewGames.addEventListener("click", () => {
-       leaderboardView = "games";
-       renderLeaderboard();
-     });
-   }
-);
+on(elBtnLeaderboardViewSummary, "click", () => {
+  leaderboardView = "summary";
+  renderLeaderboard();
+});
+on(elBtnLeaderboardViewGames, "click", () => {
+  leaderboardView = "games";
+  renderLeaderboard();
+});
+
 // ---------- Init ----------
 function init() {
   loadState();
