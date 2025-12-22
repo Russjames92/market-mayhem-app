@@ -356,6 +356,7 @@
       portfolio: document.getElementById('panelPortfolio'),
       pit: document.getElementById('panelPit'),
       log: document.getElementById('panelLog'),
+      controls: document.getElementById('panelControls'),
     };
 
     function openPanel(key){
@@ -372,6 +373,7 @@
     document.getElementById('openPortfolio').addEventListener('click', () => openPanel('portfolio'));
     document.getElementById('openPit').addEventListener('click', () => openPanel('pit'));
     document.getElementById('openLog').addEventListener('click', () => openPanel('log'));
+    document.getElementById('openControls').addEventListener('click', () => openPanel('controls'));
     document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', closeAllPanels));
     window.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAllPanels(); });
 
