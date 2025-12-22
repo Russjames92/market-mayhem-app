@@ -113,6 +113,49 @@
     @media (max-width: 900px){
       .grid{ grid-template-columns:1fr; }
     }
+
+  /* --- classic compatibility (minimal) --- */
+    .muted{ color: var(--muted); }
+    .mini{ font-size: 11px; color: var(--muted); }
+    .divider{ height:1px; background:#222; margin:12px 0; }
+    
+    input,select,button,textarea{
+      width:100%;
+      background:var(--panel2);
+      color:var(--text);
+      border:1px solid #2a2a2a;
+      border-radius:12px;
+      padding:10px;
+      outline:none;
+    }
+    button{ cursor:pointer; font-weight:800; }
+    button.primary{ background:#1e1e24; border-color:#3a3a3a; }
+    button.danger{ background:#241214; border-color:#5a2a2e; }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+    
+    .tag{
+      font-size:11px;
+      padding:4px 8px;
+      border:1px solid #2a2a2a;
+      border-radius:999px;
+      display:inline-block;
+      opacity:.9;
+      white-space:nowrap;
+      margin:4px 6px 0 0;
+    }
+    
+    .log{
+      height:220px;
+      overflow:auto;
+      background:var(--panel2);
+      border:1px solid #2a2a2a;
+      border-radius:14px;
+      padding:10px;
+      font-size:12px;
+    }
+    .log .item{ padding:6px 2px; border-bottom:1px dashed #222; }
+    .log .item:last-child{ border-bottom:none; }
+
   </style>
 </head>
 
@@ -178,7 +221,7 @@
       <button class="btn" data-close>Close</button>
     </div>
     <div class="panelBody" id="panelPortfolioBody">
-      <div class="ghost">Next step: we’ll move your existing portfolio UI into here.</div>
+      <div id="playersArea"></div>
     </div>
   </aside>
 
@@ -188,7 +231,24 @@
       <button class="btn" data-close>Close</button>
     </div>
     <div class="panelBody" id="panelPitBody">
-      <div class="ghost">Next step: we’ll move your existing pit board UI into here.</div>
+      <div id="pitTableWrap">
+        <table id="pitTable">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Company</th>
+              <th>Industries</th>
+              <th>Dividend</th>
+              <th>Start</th>
+              <th>Current</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      
+      <div id="pitCards"></div>
+
     </div>
   </aside>
 
@@ -198,7 +258,7 @@
       <button class="btn" data-close>Close</button>
     </div>
     <div class="panelBody" id="panelLogBody">
-      <div class="ghost">Next step: we’ll feed your existing event log into here.</div>
+      <div class="log" id="log"></div>
     </div>
   </aside>
 
