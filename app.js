@@ -698,6 +698,8 @@ function renderAll() {
   if (elBtnEndSession) elBtnEndSession.disabled = !started;
 
   if (elMarketMoverHint || elBtnApplyMarketMover) updateMarketMoverButton();
+   // Dashboard hook (if present)
+   if (window.dashboardRender) window.dashboardRender(state);
 }
 
 function clearLeaderboard() {
