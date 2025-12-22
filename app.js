@@ -1073,6 +1073,9 @@ function init() {
   }
 
   setupPitToggle();
+   // If dashboardRender was defined later, renderAll will call it again on next tick anyway.
+   // This makes it populate immediately if available now:
+   if (window.dashboardRender) window.dashboardRender(state);
   renderAll();
 }
 
