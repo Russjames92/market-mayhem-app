@@ -204,13 +204,13 @@
         <h2>Quick Stats</h2>
         <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
           <div class="mini muted" style="min-width:90px;">Show:</div>
-          <select id="statPlayer" style="max-width:260px;"></select>
+          <select id="qsPlayerSelect" style="max-width:260px;"></select>
         </div>
         <div class="pillrow">
-          <div class="pill">Cash: <span id="statCash">—</span></div>
-          <div class="pill">Stock Value: <span id="statStock">—</span></div>
-          <div class="pill">Dividends: <span id="statDiv">—</span></div>
-          <div class="pill">Net Worth: <span id="statNet">—</span></div>
+          <div class="pill">Cash: <span id="qsCash">—</span></div>
+          <div class="pill">Stock Value: <span id="qsStock">—</span></div>
+          <div class="pill">Dividends: <span id="qsDiv">—</span></div>
+          <div class="pill">Net Worth: <span id="qstNet">—</span></div>
         </div>
 
         <div style="height:10px"></div>
@@ -537,6 +537,7 @@ function computePrimaryAction(state){
     }
     
     // This is called by app.js every render
+    let QS_PLAYER_ID = null;   // persists selected player across re-renders
     window.dashboardRender = function(state){
       // Build stat player dropdown
       if (statPlayer){
@@ -552,10 +553,80 @@ function computePrimaryAction(state){
         }
       }
       
-      // Choose which stats to show
-      const totals = statPlayerId
-        ? computePlayerTotals(state, statPlayerId)
-        : computeTableTotals(state);
+      // ---------- Quick Stats ----------
+      const qsSelect = document.getElementById("qsPlayerSelect");
+      const qsCash   = document.getElementById("qsCash");
+      const qsStock  = document.getElementById("qsStock");
+      const qsDiv    = document.getElementById("qsDiv");
+      const qsNet    = document.getElementById("qsNet");
+      
+      // If no players or no session, clear
+      if (!state || !state.players || !state.players.length) {
+        if (qsCash) qsCash.textContent = "$0";
+        if (qsStock) qsStock.textContent = "$0";
+        if (qsDiv) qsDiv.textContent = "$0";
+        if (qsNet) qsNet.textContent = "$0";
+      } else {
+      
+        // 1) initialize QS_PLAYER_ID once
+        if (QS_PLAYER_ID == null) QS_PLAYER_ID = String(state.players[0].id);
+      
+        // 2) (re)build dropdown options safely
+        if (qsSelect) {
+          const wanted = String(QS_PLAYER_ID);
+      
+          // Only rebuild options if count changed (prevents wiping selection constantly)
+          if (qsSelect.options.length !== state.players.length) {
+            qsSelect.innerHTML = state.players
+              .map((p, idx) => `<option value="${String(p.id)}">Player ${idx + 1}</option>`)
+              .join("");
+          }
+      
+          // Force the UI to reflect the stored selection
+          qsSelect.value = wanted;
+      
+          // Attach change handler once
+          if (!qsSelect.dataset.bound) {
+            qsSelect.dataset.bound = "1";
+            qsSelect.addEventListener("change", (e) => {
+              QS_PLAYER_ID = String(e.target.value);
+              // immediately redraw stats using current state snapshot
+              if (window.dashboardRender && window.MM_STATE) window.dashboardRender(window.MM_STATE);
+            });
+          }
+        }
+      
+        // 3) find selected player (string-safe comparison)
+        const selected =
+          state.players.find(p => String(p.id) === String(QS_PLAYER_ID)) || state.players[0];
+      
+        // 4) compute stock value + dividends using SAME rules as app.js
+        let stockValue = 0;
+        for (const [sym, shares] of Object.entries(selected.holdings || {})) {
+          const price = (state.prices && state.prices[sym]) ? state.prices[sym] : 0;
+          stockValue += (Number(shares || 0) * Number(price || 0));
+        }
+      
+        // Dividends due = shares * dividend-per-share (from STOCKS)
+        let dividendsDue = 0;
+        if (window.STOCKS && Array.isArray(window.STOCKS)) {
+          for (const s of window.STOCKS) {
+            const sh = (selected.holdings && selected.holdings[s.symbol]) ? selected.holdings[s.symbol] : 0;
+            dividendsDue += (Number(sh || 0) * Number(s.dividend || 0));
+          }
+        }
+      
+        const cash = Number(selected.cash || 0);
+        const net  = cash + stockValue;
+      
+        // 5) render
+        const fmt = (n) => "$" + Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+      
+        if (qsCash) qsCash.textContent = fmt(cash);
+        if (qsStock) qsStock.textContent = fmt(stockValue);
+        if (qsDiv) qsDiv.textContent = fmt(dividendsDue);
+        if (qsNet) qsNet.textContent = fmt(net);
+      }
 
       // Pills (if you don’t track these yet, leave as —)
       pillYear.textContent = state?.year ?? "—";
