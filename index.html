@@ -210,7 +210,7 @@
           <div class="pill">Cash: <span id="qsCash">—</span></div>
           <div class="pill">Stock Value: <span id="qsStock">—</span></div>
           <div class="pill">Dividends: <span id="qsDiv">—</span></div>
-          <div class="pill">Net Worth: <span id="qstNet">—</span></div>
+          <div class="pill">Net Worth: <span id="qsNet">—</span></div>
         </div>
 
         <div style="height:10px"></div>
@@ -412,13 +412,6 @@
     const primaryHeadline = document.getElementById("primaryHeadline");
     const primarySub = document.getElementById("primarySub");
     const primaryButton = document.getElementById("primaryButton");
-    
-    const statPlayer = document.getElementById("statPlayer");
-      let statPlayerId = null;
-      
-      statPlayer?.addEventListener("change", () => {
-        statPlayerId = statPlayer.value || null;
-      });
 
     function money(n){
       const v = Number(n || 0);
@@ -538,21 +531,8 @@ function computePrimaryAction(state){
     
     // This is called by app.js every render
     let QS_PLAYER_ID = null;   // persists selected player across re-renders
+    let QS_LAST_PLAYER_KEY = "";
     window.dashboardRender = function(state){
-      // Build stat player dropdown
-      if (statPlayer){
-        if (!state?.started || !(state.players || []).length){
-          statPlayer.innerHTML = `<option value="">—</option>`;
-          statPlayerId = null;
-        } else {
-          const opts = state.players.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
-          statPlayer.innerHTML = opts;
-      
-          if (!statPlayerId) statPlayerId = state.players[0].id;
-          statPlayer.value = statPlayerId;
-        }
-      }
-      
       // ---------- Quick Stats ----------
       const qsSelect = document.getElementById("qsPlayerSelect");
       const qsCash   = document.getElementById("qsCash");
@@ -576,11 +556,13 @@ function computePrimaryAction(state){
           const wanted = String(QS_PLAYER_ID);
       
           // Only rebuild options if count changed (prevents wiping selection constantly)
-          if (qsSelect.options.length !== state.players.length) {
-            qsSelect.innerHTML = state.players
-              .map((p, idx) => `<option value="${String(p.id)}">Player ${idx + 1}</option>`)
-              .join("");
-          }
+          const key = (state.players || []).map(p => String(p.id)).join("|");
+            if (key !== QS_LAST_PLAYER_KEY) {
+              QS_LAST_PLAYER_KEY = key;
+              qsSelect.innerHTML = state.players
+                .map((p, idx) => `<option value="${String(p.id)}">Player ${idx + 1}</option>`)
+                .join("");
+            }
       
           // Force the UI to reflect the stored selection
           qsSelect.value = wanted;
@@ -632,11 +614,6 @@ function computePrimaryAction(state){
       pillYear.textContent = state?.year ?? "—";
       pillTurn.textContent = state?.turn ?? "—";
       pillPos.textContent  = state?.position ?? "—";
-    
-      statCash.textContent  = "$" + money(totals.cash);
-      statStock.textContent = "$" + money(totals.stock);
-      statDiv.textContent   = "$" + money(totals.div);
-      statNet.textContent   = "$" + money(totals.net);
     
       const act = computePrimaryAction(state);
       primaryLabel.textContent = act.label;
