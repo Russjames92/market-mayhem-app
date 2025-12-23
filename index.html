@@ -482,7 +482,7 @@ function computePrimaryAction(state){
     function computePlayerTotals(state, playerId){
       if (!state?.started) return { cash:0, stock:0, div:0, net:0 };
     
-      const p = (state.players || []).find(x => x.id === playerId) || state.players?.[0];
+      const p = (state.players || []).find(x => String(x.id) === String(playerId)) || state.players?.[0];
       if (!p) return { cash:0, stock:0, div:0, net:0 };
     
       const bySymbol = Object.fromEntries((window.STOCKS || []).map(s => [s.symbol, s]));
